@@ -1,0 +1,91 @@
+.example-container {
+	overflow: hidden;
+	/*pointer-events: visible;*/
+}
+
+.html-gallery {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+}
+
+#left-panel {
+  /*border-right: 1px solid black;*/
+}
+
+#left-panel a,
+a.html-gallery {
+	color: black;
+	text-decoration: none;
+}
+
+#left-panel ul {
+	list-style-type: none;
+}
+
+#main-panel {
+  border-left: 2px dotted black;
+  border-right: 2px dotted black;
+  padding-left: 15px;
+}
+
+.tag-selected {
+  font-weight: bold;
+}
+
+.tag-selected a {
+  color: #C00 !important;
+}
+
+#content.html-gallery {
+  /*content: "";*/
+  width: 100%;
+  display: table;
+  clear: both;
+}
+
+.html-gallery h3 {
+  font-size: 24px;
+  font-weight: 500;
+}
+
+h1.html-gallery {
+	border: 0;
+ color: #000;
+ font-family: inherit;
+ font-size: 100%;
+ font-style: inherit;
+ font-style: normal;
+ font-weight: 400;
+ font-weight: inherit;
+ letter-spacing: .0075em;
+ line-height: 38px;
+ line-height: 55px;
+ margin-bottom: 25px;
+ margin-bottom: 50px;
+ outline: 0;
+ padding: 0;
+ text-transform: uppercase;
+ transition: color .15s cubic-bezier(.33,.66,.66,1);
+ vertical-align: baseline;
+-webkit-transition: color .15s cubic-bezier(.33,.66,.66,1);
+box-sizing: border-box;
+font-family: ambroise-francois-std,'Bodoni 72',Didot,'Hoe­fler Text',serif;
+font-size: 45px;
+font-size: 64px;
+margin: 0;
+}
+
+h2.html-gallery {
+background: url('data:image/png; base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAABCAYAAACsXeyTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAFUlEQVQIHWNIS0sr/v//PwMMDzY+ADqMahlW4J91AAAAAElFTkSuQmCC') top left repeat-x;
+border: 0;
+font-size: 100%;
+font-weight: bold;
+font: inherit;
+margin-bottom: 1em;
+padding: 0;
+vertical-align: baseline;
+font-family: "PT Serif","Georgia","Helvetica Neue",Arial,sans-serif;
+font-size: 1.5em;
+margin: 0;
+padding-top: 0.8em;
+text-rendering: optimizelegibility
+}

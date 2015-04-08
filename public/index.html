@@ -1,93 +1,122 @@
 <!DOCTYPE HTML>
 <html ng-app="App">
-	<head>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-
-		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
-
-
-		<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
-    <script src="/iframe-resizer/js/iframeResizer.min.js"></script>
-		<script>
+  <head>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script type="text/javascript" src="lodash.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+  <script src="prism.js"></script>
+  <link href="prism.css" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+	<script>
 var App = angular.module('App', []);
+
+function shuffle(o){ //v1.0
+    for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
+    return o;
+};
 
 function resizeIframe(obj) {
     obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
   }
 
-function hCtrl($scope, $http) {
-	console.log($scope);
+function hCtrl($scope, $http, $compile) {
   	$http.get('/tags')
        .then(function(res){
-          $scope.tags = res.data;                
-          console.log($scope.tags);
+          $scope.tags = _.unique(['input', 'label', 'code', 'table', 'textarea', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'figcaption', 'figure', 'footer'].concat(res.data));
+          $scope.tags = _.without($scope.tags, 'body', 'head', 'title', 'link', 'html', 'meta', 'script', 'style');
         });
 
     $scope.selectTag = function(tag) {
+      $scope.selectedTag = tag;
     	$http.get('/tag_usage/' + tag)
        .then(function(res){
-          $scope.tag_usage = res.data;                
+          var mainH = '';
+
+          $scope.tag_usage = shuffle(res.data);
+          $scope.tag_usage.forEach(function(tu, index) {
+            var e = $(tu.contents);
+            var oldStyle = e.attr('style') || '';
+            oldStyle = oldStyle.trim();
+            if (oldStyle && oldStyle[oldStyle.length - 1] != ';') {
+              oldStyle += '; ';
+            }
+            oldStyle += tu.style;
+            oldStyle = oldStyle.replace(/position:\s*fixed;/g, '');
+            oldStyle = oldStyle.replace(/position:\s*absolute;/g, '');
+            //tu.style += 'max-height: 50px; overflow: hidden;';
+            e.attr('style', oldStyle);
+            var html = e.wrapAll('<div>').parent().html();
+            html = html.replace(/position:\s*fixed;/g, '');
+            html = html.replace(/position:\s*absolute;/g, '');
+            mainH += '<div class="example-container" data-id="'+tu.id+'" ng-mouseover="selectUsage('+index+')">' + html  + '</div><br>';
+
+            if (tu.style) {
+              //tu.style = tu.style.replace(/;/g, ';\n');
+              var decs = tu.style.split(';')
+              decs.sort();
+              tu.style = decs.join(';\n');
+            }
+
+            tu.rendered = html;
+          });
+          var linkingFunction = $compile(mainH);
+          var elem = linkingFunction($scope);
+          $('#main-panel-content').children().remove();
+          $('#main-panel-content').append(elem);
+          //$('#main').html(mainH);
         });
     };
 
-    $scope.selectUsage = function(tu) {
-    	if ($scope.inProgress)
-    		return;
+    $scope.selectUsage = function(index) {
+      var tu = $scope.tag_usage[index];
     	$scope.selectedUsage = tu;
-    	$scope.inProgress = true;
-    	$http.get('/page/' + tu.page)
-       	.then(function(res){
-       		$scope.inProgress = false;
-          $scope.page = res.data;
-          $scope.html = '<head>' + 
-          '<base href="'+ $scope.page.url + '" target="_blank">' +
-          //  $scope.page.head.trim() + 
-          '</head><body>' + 
-          //$("<div/>").html(tu.contents).text() + 
-          tu.contents + '<h1>123</h1>' +
-          '</body>';
-          console.log($scope.html);
-          console.log($scope.page.head.trim());
-      	  //$('#preview').contents().find('html').get().innerHTML = $scope.html;
-          $('#preview').contents().find('html').html($scope.html);
-          //var obj = $('#preview').get(0);
-          //console.log(obj);
-          //obj.style.height = obj.contentWindow.document.body.scrollHeight + 'px';
-        }, function(err) {
-        	console.log('error');
-          $scope.inProgress = false;
-        });
+      $('#the-html').text(tu.element);
+      $('#the-css').text(tu.style);
+      //$scope.apply();
+      Prism.highlightAll();
     };
 
-    $scope.selectTag('input');
+    $scope.selectTag('h1');
 }
 
 App.controller('hCtrl', hCtrl);
 		</script>
 	</head>
 	<body ng-controller="hCtrl">
-		<h1>HTML Observatory</h1>
-		<div style="margin: 0px;" class="row">
-			<div class="col-md-2">
+		<h1 class="html-gallery">HTML Inspiration
+      <span style="font-size: 20px;">Collected by Thomas Hansen <a href="/about.html" >about</a></span>
+    </h1>
+
+		<div style="margin: 0px;" class="html-gallery" id="content" class="row">
+			<div id="left-panel" style="width: 16%; float: left;">
+        <h4>1) Choose an Element</h4>
 				<ul class="nav nav-pills nav-stacked">
-				  <li ng-repeat="tag in tags" ng-click="selectTag(tag)" role="presentation"><a href="#">{{tag}}</a></li>
+				  <li ng:class="{true:'tag-selected', false:''}[tag==selectedTag]" ng-repeat="tag in tags" ng-click="selectTag(tag)" role="presentation"><a href="#">{{tag}}</a></li>
 				</ul>
 			</div>
-			<div class="col-md-4">
-				<ul class="nav nav-pills nav-stacked">
-				  <li ng-repeat="tu in tag_usage" ng-click="selectUsage(tu)" role="presentation"><a href="#">{{tu.element}}</a></li>
-				</ul>
+			<div style="width: 40%; float: left;" id="main-panel">
+				<h4>2) Hover over examples to see the HTML and CSS it uses</h4>
+        <div id="main-panel-content">
+        </div>
 			</div>
-			<div class="col-md-6">
-				{{selectedUsage.contents}}
-				<br>
-				<hr>
-				<div>
-					<iframe id="preview" style="width: 100%;" onload='javascript:resizeIframe(this);'>
-					</iframe>
-				</div>
-				<a href="{{page.url}}">{{page.url}}</a>
-			</div>
+    </div>
+
+    <div class="html-gallery">
+      <h3 style="position: fixed; right: 25px; top: 7%; width:40%;">HTML Code</h3>
+
+      <div style="position: fixed; right: 25px; top: 14%; width: 40%; height: 12%; overflow: scroll;">
+        <pre><code id="the-html" class="language-markup"></code></pre>
+      </div>
+
+      <h3 style="position: fixed; right: 25px; top: 23%; width:40%;">CSS Styling</h3>
+
+      <div style="position: fixed; right: 25px; top: 32%; width:40%; height: 60%; overflow: auto; ">
+        <pre><code id="the-css" class="language-css">{{selectedUsage.style}}</code></pre>
+      </div>
+
+      <div style="position: fixed; right: 25px; top: 92%; width:40%; height: 60%;">
+        Source: <a href="{{selectedUsage.page_url}}">{{selectedUsage.page_url}}</a>
+      </div>
+    </div>
 	</body>
 </html>
